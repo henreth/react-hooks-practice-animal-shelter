@@ -1,11 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import Filters from "./Filters";
 import PetBrowser from "./PetBrowser";
 
 function App() {
   const [pets, setPets] = useState([]);
-  const [filters, setFilters] = useState({ type: "all" });
+  const [filters, setFilters] = useState("all");
+
+  const petURL = 'http://localhost:3001/pets';
+
+  useEffect(()=>{
+    fetch(petURL)
+    .then(r=>r.json())
+    .then(petItems=>setPets(petItems))
+  },[])
+
+  function handleFilterChange(newFilter) {
+    setFilters(newFilter);
+  }
+
+  let filteredPets = pets.filter((pet)=>{
+    return pet.type === filters || filters === 'all';
+  })
+
+  function handleUpdatePet(updatedPet){
+    const updatedPets = pets.map((pet) => {
+      if (pet.id === updatedPet.id) {
+        return updatedPet;
+      } else {
+        return pet;
+      }
+    });
+    setPets(updatedPets);
+  }
 
   return (
     <div className="ui container">
@@ -15,10 +42,15 @@ function App() {
       <div className="ui container">
         <div className="ui grid">
           <div className="four wide column">
-            <Filters />
+            <Filters
+              filters={filters}
+              onFilterChange={handleFilterChange} />
           </div>
           <div className="twelve wide column">
-            <PetBrowser />
+            <PetBrowser
+              pets={filteredPets}
+              onUpdatePet={handleUpdatePet}
+              petURL={petURL} />
           </div>
         </div>
       </div>
